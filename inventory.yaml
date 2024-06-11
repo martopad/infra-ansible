@@ -1,0 +1,38 @@
+kubernetes:
+  #hosts:
+  #    server:
+  #      ansible_host: 192.168.1.20
+  #      name: server
+  #    node-0:
+  #      ansible_host: 192.168.1.21
+  #      name: node-0
+  #    node-1:
+  #      ansible_host: 192.168.1.22
+  #      name: node-1
+
+
+kubernetes_control_plane:
+  hosts:
+    server:
+      ansible_host: 192.168.1.20
+      name: server
+
+#iid = inventory item data
+kubernetes_nodes:
+  hosts:
+    node-0:
+      ansible_host: 192.168.1.21
+      iid: {
+        name: node-0
+      }
+    node-1:
+      ansible_host: 192.168.1.22
+      iid: {
+        name: node-1
+      }
+
+kubernetes_jumpbox:
+  hosts:
+    jumpbox:
+      ansible_host: local
+        

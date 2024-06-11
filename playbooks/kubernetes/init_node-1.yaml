@@ -1,0 +1,58 @@
+- hosts: node-1
+
+  tasks: 
+    #- name: install kubectl
+    #  community.general.portage:
+    #    package: sys-cluster/kubectl
+    #    state: present
+    - name: modify /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "# Kubernetes The Hard Way"
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "127.0.1.1 node-1.kubernetes.local node-1"
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "192.168.1.20 server.kubernetes.local server"
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "192.168.1.21 node-0.kubernetes.local node-0"
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "192.168.1.22 node-1.kubernetes.local node-1"
+    - name: Create kubelet dir
+      ansible.builtin.file:
+        path: /var/lib/kubelet
+        state: directory
+        mode: '0755'
+    - name: Transfer certs
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/certs/generated/node-1.crt"
+        dest: /var/lib/kubelet/kubelet.crt
+        owner: root
+        group: root
+        mode: '0644'
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/certs/generated/node-1.key"
+        dest: /var/lib/kubelet/kubelet.crt
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Create kube-proxy dir
+      ansible.builtin.file:
+        path: /var/lib/kube-proxy
+        state: directory
+        mode: '0755'
+    - name: Transfer config files
+      ansible.builtin.copy: 
+        src: "{{ playbook_dir }}/../../config/certs/generated/kube-proxy.kubeconfig"
+        dest: /var/lib/kube-proxy/kubeconfig
+      ansible.builtin.copy: 
+        src: "{{ playbook_dir }}/../../config/certs/generated/node-1.kubeconfig"
+        dest: /var/lib/kubelet/kubeconfig

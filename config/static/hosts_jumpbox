@@ -1,0 +1,5 @@
+# Kubernetes The Hard Way
+127.0.1.1       jumpbox
+192.168.1.20 server.kubernetes.local server
+192.168.1.21 node-0.kubernetes.local node-0
+192.168.1.22 node-1.kubernetes.local node-1

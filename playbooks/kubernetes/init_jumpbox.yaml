@@ -1,0 +1,29 @@
+- hosts: localhost
+  connection: local
+
+  tasks: 
+    - name: install kubectl
+      community.general.portage:
+        package: sys-cluster/kubectl
+        state: present
+    - name: modify /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "# Kubernetes The Hard Way"
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "127.0.1.1 jumpbox"
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "192.168.1.20 server.kubernetes.local server"
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "192.168.1.21 node-0.kubernetes.local node-0"
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "192.168.1.22 node-1.kubernetes.local node-1"

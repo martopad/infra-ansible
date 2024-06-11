@@ -1,0 +1,9 @@
+- name: My first play
+  hosts: kubernetes_nodes
+  tasks:
+    - name: Ping my hosts
+      ansible.builtin.ping:
+
+    - name: Print message
+      ansible.builtin.debug:
+        msg: Hello World

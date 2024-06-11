@@ -1,0 +1,99 @@
+- hosts: kubernetes_nodes
+  vars:
+    SUBNET: 10.200.0.0/24
+
+  tasks: 
+    - name: display messages
+      debug:
+        msg:
+          - "Current host: {{ iid.name }}"
+      tags:
+        - msg123
+
+    - name: modify /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "{{ item }}"
+      loop:
+        - "# Kubernetes The Hard Way"
+        - "127.0.1.1 node-0.kubernetes.local node-0"
+        - "192.168.1.20 server.kubernetes.local server"
+        - "192.168.1.21 node-0.kubernetes.local node-0"
+        - "192.168.1.22 node-1.kubernetes.local node-1"
+    - name: create dirs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /etc/cni/net.d
+        - /opt/cni/bin
+        - /var/lib/kubelet
+        - /var/lib/kube-proxy
+        - /var/lib/kubernetes
+        - /var/run/kubernetes
+    - name: Create kubelet dir
+      ansible.builtin.file:
+        path: /var/lib/kubelet
+        state: directory
+        mode: '0755'
+    - name: Transfer certs
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/certs/generated/node-0.crt"
+        dest: /var/lib/kubelet/kubelet.crt
+        owner: root
+        group: root
+        mode: '0644'
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/certs/generated/node-0.key"
+        dest: /var/lib/kubelet/kubelet.key
+        owner: root
+        group: root
+        mode: '0400'
+    - name: Create kube-proxy dir
+      ansible.builtin.file:
+        path: /var/lib/kube-proxy
+        state: directory
+        mode: '0755'
+    - name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
+      shell: |
+        swapoff -a
+    - name: Disable SWAP in fstab since kubernetes can't work with swap enabled (2/2)
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+        replace: '# \1'
+    - name: fill and transfer templated configs
+      ansible.builtin.template:
+        src: "{{ item.file }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - { file: "{{ playbook_dir }}/../../config/templates/10-bridge.conf.j2", dest: /etc/cni/net.d/10-bridge.conf }
+        - { file: "{{ playbook_dir }}/../../config/templates/kubelet-config.yaml.j2", dest: /var/lib/kubelet/kubelet-config.yaml }
+      tags:
+        - test123
+    - name: transfer non templated configs
+      ansible.builtin.copy:
+        src: "{{ item.file }}"
+        dest:  "{{ item.dest }}"
+        owner: root
+        group: root
+      loop:
+        - { file: "{{ playbook_dir }}/../../config/certs/generated/kube-proxy.kubeconfig",dest: /var/lib/kube-proxy/kubeconfig }
+        - { file: "{{ playbook_dir }}/../../config/certs/generated/node-0.kubeconfig", dest: /var/lib/kubelet/kubeconfig }
+        - { file: "{{ playbook_dir }}/../../config/static/99-loopback.conf", dest: /etc/cni/net.d/99-loopback.conf }
+    - name: install kubernetes apps for nodes
+      community.general.portage:
+        package: "{{ item }}"
+        state: present
+      loop:
+        - app-containers/containerd
+        - app-containers/cni-plugins
+        - sys-cluster/kubelet
+        - sys-cluster/kube-proxy
+
+
+

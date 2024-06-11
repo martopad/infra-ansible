@@ -1,0 +1,7 @@
+- hosts: kubernetes
+
+  tasks:
+    - name: install git
+      community.general.portage:
+        package: dev-vcs/git
+        state: present
