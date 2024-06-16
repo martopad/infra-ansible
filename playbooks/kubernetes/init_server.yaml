@@ -1,21 +1,40 @@
 - hosts: kubernetes_control_plane
 
   tasks: 
-    - name: modify /etc/hosts
-      ansible.builtin.lineinfile:
-        path: /etc/hosts
-        state: present
-        line: "{{ item }}"
-      loop:
-        - "# Kubernetes The Hard Way"
-        - "127.0.1.1 server.kubernetes.local server"
-        - "192.168.1.20 server.kubernetes.local server"
-        - "192.168.1.21 node-0.kubernetes.local node-0"
-        - "192.168.1.22 node-1.kubernetes.local node-1"
-    - name: Installing etcd
+    # - name: modify /etc/hosts
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/hosts
+    #     state: present
+    #     line: "{{ item }}"
+    #   loop:
+    #     - "# Kubernetes The Hard Way"
+    #     - "127.0.1.1 server.kubernetes.local server"
+    #       #- "192.168.1.20 server.kubernetes.local server"
+    #       #- "192.168.1.21 node-0.kubernetes.local node-0"
+    #       #- "192.168.1.22 node-1.kubernetes.local node-1"
+    - name: Installing kubernetes server packages
       community.general.portage:
-        package: dev-db/etcd
+        package: "{{ item }}"
         state: present
+        getbinpkg: true
+      loop:
+        - app-containers/docker
+        - app-containers/docker-cli
+        - dev-db/etcd
+        - sys-cluster/kube-apiserver
+        - sys-cluster/kube-controller-manager
+        - sys-cluster/kube-scheduler
+    - name: enable kubernetes server services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: yes
+        runlevel: default
+      loop:
+        - docker
+        - etcd
+        - kube-apiserver
+        - kube-controller-manager
+        - kube-scheduler
     - name: Etcd dir
       ansible.builtin.file:
         path: /var/lib/etcd
@@ -32,40 +51,19 @@
         - { file: "{{ playbook_dir }}/../../config/certs/generated/ca.crt", perm: '0644' }
         - { file: "{{ playbook_dir }}/../../config/certs/generated/kube-api-server.key", perm: '0644' }
         - { file: "{{ playbook_dir }}/../../config/certs/generated/kube-api-server.crt", perm: '0600' }
-    - name: modify default conf.yml
+    - name: Modify default conf.yml
       ansible.builtin.lineinfile:
         path: /etc/etcd/etcd.conf.yml
         regexp: '^name: '
-        line: "name: 'server'"
-    - name: enable etcd service by default
-      ansible.builtin.service:
-        name: etcd
-        enabled: yes
-        runlevel: default
-    - name: start etcd service
-      ansible.builtin.service:
-        name: etcd
-        state: started
-    - name: Installing kubernetes server packages
-      community.general.portage:
-        package: "{{ item }}"
-        state: present
+        line: "name: {{ iid.name }}"
+    - name: Create kubernetes config dirs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0731'      
       loop:
-        - app-containers/docker
-        - app-containers/docker-cli
-        - sys-cluster/kube-apiserver
-        - sys-cluster/kube-controller-manager
-        - sys-cluster/kube-scheduler
-    - name: Kubernetes config dir
-      ansible.builtin.file:
-        path: /etc/kubernetes/config
-        state: directory
-        mode: '0731'      
-    - name: Kubernetes lib dir
-      ansible.builtin.file:
-        path: /var/lib/kubernetes
-        state: directory
-        mode: '0731'      
+        - /etc/kubernetes/config
+        - /var/lib/kubernetes
     - name: Kubernetes Controller Apps certs
       copy:
         src: '{{item}}'
@@ -146,25 +144,19 @@
       tags:
         - modif_serv
         - test123
-    - name: enable kubernetes server services
-      ansible.builtin.service:
-        name: "{{ item }}"
-        enabled: yes
-        runlevel: default
-      loop:
-        - docker
-        - kube-apiserver
-        - kube-controller-manager
-        - kube-scheduler
     - name: start kubernetes server services
       ansible.builtin.service:
         name: "{{ item }}"
         state: started
+          # state: restarted
       loop:
         - docker
+        - etcd
         - kube-apiserver
         - kube-controller-manager
         - kube-scheduler
+      tags:
+        - start_services
     - name: Create system:kube-apiserver-to-kubelet cluster role
       ansible.builtin.command:
         argv:

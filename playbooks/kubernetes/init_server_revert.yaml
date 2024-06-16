@@ -1,0 +1,56 @@
+- hosts: kubernetes_control_plane
+
+  tasks: 
+    - name: Stop server services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - dev-db/etcd
+        - docker
+        - kube-apiserver
+        - kube-controller-manager
+        - kube-scheduler
+    - name: Disable kubernetes server services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: false
+      loop:
+        - dev-db/etcd
+        - docker
+        - kube-apiserver
+        - kube-controller-manager
+        - kube-scheduler
+    - name: Uninstalling kubernetes server packages
+      community.general.portage:
+        package: "{{ item }}"
+        state: present
+      loop:
+        - app-containers/docker
+        - app-containers/docker-cli
+        - dev-db/etcd
+        - sys-cluster/kube-apiserver
+        - sys-cluster/kube-controller-manager
+        - sys-cluster/kube-scheduler
+    - name: Remove uneeded packages
+      community.general.portage:
+        depclean: true
+    - name: Remove dirs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/etcd/
+        - /etc/kubernetes/config
+        - /var/lib/etcd 
+        - /var/lib/kubernetes
+    - name: Remove files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/init.d/kube-apiserver
+        - /etc/init.d/kube-controller-manager
+        - /etc/init.d/kube-scheduler
+        - /root/admin.kubeconfig
+        - /root/kube-apiserver-to-kubelet.yaml

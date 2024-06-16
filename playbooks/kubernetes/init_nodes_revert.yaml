@@ -1,0 +1,52 @@
+- hosts:  node0.kubernetes.local
+
+  tasks: 
+    - name: Disable services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: false
+        runlevel: default
+      loop:
+        - containerd
+        - kubelet
+        - kube-proxy
+    - name: Stop services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - containerd
+        - kubelet
+        - kube-proxy
+    - name: Uninstall kubernetes apps for nodes
+      community.general.portage:
+        package: "{{ item }}"
+        state: absent
+      loop:
+        - app-containers/containerd
+        - app-containers/cni-plugins
+        - sys-cluster/kubelet
+        - sys-cluster/kube-proxy
+    - name: Remove uneeded packages
+      community.general.portage:
+        depclean: true
+    - name: Remove dirs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/cni/net.d
+        - /opt/cni/bin
+        - /var/lib/kubelet
+        - /var/lib/kube-proxy
+        - /var/lib/kubernetes
+        - /var/run/kubernetes
+    - name: Reenable SWAP in fstab (1/2)
+      replace:
+        path: /etc/fstab
+        regexp: '^# (.+?\sswap\s+sw\s+.*)$'
+        replace: '\1'
+    - name: Enable SWAP (2/2)
+      shell: |
+        swapon -a
+

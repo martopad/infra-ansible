@@ -1,4 +1,4 @@
-- hosts: kubernetes_nodes
+- hosts:  node0.kubernetes.local
   vars:
     SUBNET: 10.200.0.0/24
 
@@ -10,17 +10,27 @@
       tags:
         - msg123
 
-    - name: modify /etc/hosts
-      ansible.builtin.lineinfile:
-        path: /etc/hosts
+          #- name: modify /etc/hosts
+          #  ansible.builtin.lineinfile:
+          #    path: /etc/hosts
+          #    state: present
+          #    line: "{{ item }}"
+          #  loop:
+          #    - "# Kubernetes The Hard Way"
+          #    - "127.0.1.1 node-0.kubernetes.local node-0"
+          #    - "192.168.1.20 server.kubernetes.local server"
+          #    - "192.168.1.21 node-0.kubernetes.local node-0"
+          #    - "192.168.1.22 node-1.kubernetes.local node-1"
+    - name: install kubernetes apps for nodes
+      community.general.portage:
+        package: "{{ item }}"
         state: present
-        line: "{{ item }}"
+        getbinpkg: true
       loop:
-        - "# Kubernetes The Hard Way"
-        - "127.0.1.1 node-0.kubernetes.local node-0"
-        - "192.168.1.20 server.kubernetes.local server"
-        - "192.168.1.21 node-0.kubernetes.local node-0"
-        - "192.168.1.22 node-1.kubernetes.local node-1"
+        - app-containers/containerd
+        - app-containers/cni-plugins
+        - sys-cluster/kubelet
+        - sys-cluster/kube-proxy
     - name: create dirs
       ansible.builtin.file:
         path: "{{ item }}"
@@ -39,13 +49,13 @@
         mode: '0755'
     - name: Transfer certs
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../config/certs/generated/node-0.crt"
+        src: "{{ playbook_dir }}/../../config/certs/generated/{{ iid.name }}.crt"
         dest: /var/lib/kubelet/kubelet.crt
         owner: root
         group: root
         mode: '0644'
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../config/certs/generated/node-0.key"
+        src: "{{ playbook_dir }}/../../config/certs/generated/{{ iid.name }}.key"
         dest: /var/lib/kubelet/kubelet.key
         owner: root
         group: root
@@ -83,17 +93,36 @@
         group: root
       loop:
         - { file: "{{ playbook_dir }}/../../config/certs/generated/kube-proxy.kubeconfig",dest: /var/lib/kube-proxy/kubeconfig }
-        - { file: "{{ playbook_dir }}/../../config/certs/generated/node-0.kubeconfig", dest: /var/lib/kubelet/kubeconfig }
+        - { file: "{{ playbook_dir }}/../../config/certs/generated/{{ iid.name }}.kubeconfig", dest: /var/lib/kubelet/kubeconfig }
         - { file: "{{ playbook_dir }}/../../config/static/99-loopback.conf", dest: /etc/cni/net.d/99-loopback.conf }
-    - name: install kubernetes apps for nodes
-      community.general.portage:
-        package: "{{ item }}"
-        state: present
+        - { file: "{{ playbook_dir }}/../../config/static/containerd-config.toml", dest: /etc/containerd/containerd-config.toml }
+    - name: enable kubernetes server services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: yes
+        runlevel: default
       loop:
-        - app-containers/containerd
-        - app-containers/cni-plugins
-        - sys-cluster/kubelet
-        - sys-cluster/kube-proxy
-
-
+        - containerd
+        - kubelet
+        - kube-proxy
+    - name: Modify kube-scheduler init file
+      ansible.builtin.lineinfile:
+        path: /etc/init.d/kubelet
+        regexp: '^command_args="\${command_args}"'
+        state: present
+        line: command_args="
+          --config=/var/lib/kubelet/kubelet-config.yaml
+          --kubeconfig=/var/lib/kubelet/kubeconfig
+          --register-node=true
+          --v=2
+          ${command_args}"
+    - name: Start services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: started
+          # state: restarted
+      loop:
+        - containerd
+        - kubelet
+        - kube-proxy
 
