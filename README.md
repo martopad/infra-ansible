@@ -6,7 +6,8 @@ This aims to automate kubernetes-the-hard-way by kelseyhightower.
 Things to improve:
 1. server, node0, and node1 are still hardcoded names and is set in my router's dns settings.
    The scripts needs to adapt based on the inventory file. Currently, this wont work when I
-   provision my next 2 (3+3) raspberry pi 5 cluster.
+   provision my next 2 (3+3) raspberry pi 5 cluster. I think majority of that work should is on
+   the certs and kubeconfig generation.
 2. DNS stuff. I am bound by my ISP's provided router-- Orange funbox. Setting the DNS names
    here are less than ideal (dashes are not supported and subdomains does not work). It also
    doesn't have support for alternative DNS provides. So additional configuration is needed
