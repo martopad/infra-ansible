@@ -15,12 +15,12 @@
     - name: Installing kubernetes server packages
       community.general.portage:
         package: "{{ item }}"
-        state: present
         getbinpkg: true
       loop:
         - app-containers/docker
         - app-containers/docker-cli
         - dev-db/etcd
+        - sys-cluster/kubectl
         - sys-cluster/kube-apiserver
         - sys-cluster/kube-controller-manager
         - sys-cluster/kube-scheduler
@@ -64,6 +64,25 @@
       loop:
         - /etc/kubernetes/config
         - /var/lib/kubernetes
+    - name: Kubernetes Admin configs
+      copy:
+        src: '{{item}}'
+        dest: /root/
+        owner: root
+        group: root
+      loop:
+        - "{{ playbook_dir }}/../../config/certs/generated/admin.kubeconfig"
+        - "{{ playbook_dir }}/../../config/certs/generated/kube-controller-manager.kubeconfig"
+        - "{{ playbook_dir }}/../../config/certs/generated/kube-scheduler.kubeconfig"
+        - "{{ playbook_dir }}/../../config/static/kube-apiserver-to-kubelet.yaml"
+    - name: Kube-Scheduler config
+      copy:
+        src: '{{item}}'
+        dest: /etc/kubernetes/config/
+        owner: root
+        group: root
+      loop:
+        - "{{ playbook_dir }}/../../config/static/kube-scheduler.yaml"
     - name: Kubernetes Controller Apps certs
       copy:
         src: '{{item}}'
@@ -81,11 +100,18 @@
         - "{{ playbook_dir }}/../../config/certs/generated/admin.kubeconfig"
         - "{{ playbook_dir }}/../../config/certs/generated/kube-controller-manager.kubeconfig"
         - "{{ playbook_dir }}/../../config/certs/generated/kube-scheduler.kubeconfig"
+    - name: give auth log 777
+      ansible.builtin.file:
+        path: /var/log/auth.log
+        owner: root
+        group: root
+        mode: '0777'
     - name: modify kube-apiserver init file
       ansible.builtin.lineinfile:
         path: /etc/init.d/kube-apiserver
-        regexp: '^command_args="\${command_args}"'
+        regexp: '^command_args='
         line: command_args="
+          --advertise-address=\"{{ iid.ip_equivalent_in_dns_hack_pls_fix }}\"
           --allow-privileged=true
           --apiserver-count=1
           --audit-log-maxage=30
@@ -104,7 +130,7 @@
           --runtime-config='api/all=true'
           --service-account-key-file=/var/lib/kubernetes/service-accounts.crt
           --service-account-signing-key-file=/var/lib/kubernetes/service-accounts.key
-          --service-account-issuer=https://server.kubernetes.local:6443
+          --service-account-issuer=https://server:6443
           --service-cluster-ip-range=10.32.0.0/24
           --service-node-port-range=30000-32767
           --tls-cert-file=/var/lib/kubernetes/kube-api-server.crt
@@ -116,7 +142,7 @@
     - name: Modify kube-controller-manager init file
       ansible.builtin.lineinfile:
         path: /etc/init.d/kube-controller-manager
-        regexp: '^command_args="\${command_args}"'
+        regexp: '^command_args='
         line: command_args="
           --bind-address=0.0.0.0
           --cluster-cidr=10.200.0.0/16
@@ -135,7 +161,7 @@
     - name: Modify kube-scheduler init file
       ansible.builtin.lineinfile:
         path: /etc/init.d/kube-scheduler
-        regexp: '^command_args="\${command_args}"'
+        regexp: '^command_args='
         state: present
         line: command_args="
           --config=/etc/kubernetes/config/kube-scheduler.yaml
@@ -147,8 +173,8 @@
     - name: start kubernetes server services
       ansible.builtin.service:
         name: "{{ item }}"
-        state: started
-          # state: restarted
+          #state: started
+        state: restarted
       loop:
         - docker
         - etcd
@@ -164,5 +190,6 @@
           - apply
           - -f
           - kube-apiserver-to-kubelet.yaml
-          - --kubeconfig admin.kubeconfig
+          - --kubeconfig
+          - admin.kubeconfig
 

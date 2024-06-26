@@ -1,4 +1,4 @@
-- hosts:  node0.kubernetes.local
+- hosts: kubernetes_nodes
   vars:
     SUBNET: 10.200.0.0/24
 
@@ -38,6 +38,7 @@
       loop:
         - /etc/cni/net.d
         - /opt/cni/bin
+        - /etc/containerd
         - /var/lib/kubelet
         - /var/lib/kube-proxy
         - /var/lib/kubernetes
@@ -54,9 +55,24 @@
         owner: root
         group: root
         mode: '0644'
+    - name: Transfer certs
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/certs/generated/ca.crt"
+        dest: /var/lib/kubelet/ca.crt
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Transfer certs 2
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../../config/certs/generated/{{ iid.name }}.key"
         dest: /var/lib/kubelet/kubelet.key
+        owner: root
+        group: root
+        mode: '0400'
+    - name: Transfer certs 2
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/certs/generated/ca.key"
+        dest: /var/lib/kubelet/ca.key
         owner: root
         group: root
         mode: '0400'
@@ -95,7 +111,8 @@
         - { file: "{{ playbook_dir }}/../../config/certs/generated/kube-proxy.kubeconfig",dest: /var/lib/kube-proxy/kubeconfig }
         - { file: "{{ playbook_dir }}/../../config/certs/generated/{{ iid.name }}.kubeconfig", dest: /var/lib/kubelet/kubeconfig }
         - { file: "{{ playbook_dir }}/../../config/static/99-loopback.conf", dest: /etc/cni/net.d/99-loopback.conf }
-        - { file: "{{ playbook_dir }}/../../config/static/containerd-config.toml", dest: /etc/containerd/containerd-config.toml }
+        - { file: "{{ playbook_dir }}/../../config/static/containerd-config.toml", dest: /etc/containerd/containerd-config.toml }          
+        - { file: "{{ playbook_dir }}/../../config/static/kube-proxy-config.yaml", dest: /var/lib/kube-proxy/kube-proxy-config.yaml }
     - name: enable kubernetes server services
       ansible.builtin.service:
         name: "{{ item }}"
@@ -108,7 +125,7 @@
     - name: Modify kube-scheduler init file
       ansible.builtin.lineinfile:
         path: /etc/init.d/kubelet
-        regexp: '^command_args="\${command_args}"'
+        regexp: '^command_args='
         state: present
         line: command_args="
           --config=/var/lib/kubelet/kubelet-config.yaml
@@ -116,11 +133,19 @@
           --register-node=true
           --v=2
           ${command_args}"
+    - name: Modify kube-proxy init file
+      ansible.builtin.lineinfile:
+        path: /etc/init.d/kube-proxy
+        regexp: '^command_args='
+        state: present
+        line: command_args="
+          --config=/var/lib/kube-proxy/kube-proxy-config.yaml
+          ${command_args}"
     - name: Start services
       ansible.builtin.service:
         name: "{{ item }}"
         state: started
-          # state: restarted
+          #state: restarted
       loop:
         - containerd
         - kubelet

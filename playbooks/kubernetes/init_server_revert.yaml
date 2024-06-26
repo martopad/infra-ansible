@@ -16,7 +16,7 @@
         name: "{{ item }}"
         enabled: false
       loop:
-        - dev-db/etcd
+        - etcd
         - docker
         - kube-apiserver
         - kube-controller-manager
@@ -24,11 +24,13 @@
     - name: Uninstalling kubernetes server packages
       community.general.portage:
         package: "{{ item }}"
-        state: present
+        state: absent
+        depclean: true
       loop:
         - app-containers/docker
         - app-containers/docker-cli
         - dev-db/etcd
+        - sys-cluster/kubectl
         - sys-cluster/kube-apiserver
         - sys-cluster/kube-controller-manager
         - sys-cluster/kube-scheduler
@@ -40,7 +42,7 @@
         path: "{{ item }}"
         state: absent
       loop:
-        - /etc/etcd/
+        - /etc/etcd
         - /etc/kubernetes/config
         - /var/lib/etcd 
         - /var/lib/kubernetes
@@ -54,3 +56,5 @@
         - /etc/init.d/kube-scheduler
         - /root/admin.kubeconfig
         - /root/kube-apiserver-to-kubelet.yaml
+        - /root/kube-controller-manager.kubeconfig
+        - /root/kube-scheduler.kubeconfig

@@ -14,23 +14,24 @@ kubernetes:
 #iid = inventory item data
 kubernetes_control_plane:
   hosts:
-    server.kubernetes.local:
-      ansible_host: 192.168.1.20
+    server:
+      #ansible_host: 192.168.1.20
       iid: {
-        name: server.kubernetes.local
+        name: server,
+        ip_equivalent_in_dns_hack_pls_fix: 192.168.1.21
       }
 
 kubernetes_nodes:
   hosts:
-    node0.kubernetes.local:
-      ansible_host: 192.168.1.21
+    node0:
+      #ansible_host: 192.168.1.21
       iid: {
-        name: node0.kubernetes.local
+        name: node0
       }
-    node1.kubernetes.local:
-      ansible_host: 192.168.1.22
+    node1:
+      #ansible_host: 192.168.1.22
       iid: {
-        name: node1.kubernetes.local
+        name: node1
       }
 
 kubernetes_jumpbox:
