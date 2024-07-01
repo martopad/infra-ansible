@@ -12,6 +12,13 @@
     #       #- "192.168.1.20 server.kubernetes.local server"
     #       #- "192.168.1.21 node-0.kubernetes.local node-0"
     #       #- "192.168.1.22 node-1.kubernetes.local node-1"
+    - name: display messages
+      debug:
+        msg:
+          - "{{ item }}"
+      loop: "{{ pods_routes | selectattr('node', 'equalto', iid.name) | map(attribute='routes') | flatten }}"
+      tags:
+        - msg123
     - name: Installing kubernetes server packages
       community.general.portage:
         package: "{{ item }}"
@@ -111,7 +118,7 @@
         path: /etc/init.d/kube-apiserver
         regexp: '^command_args='
         line: command_args="
-          --advertise-address=\"{{ iid.ip_equivalent_in_dns_hack_pls_fix }}\"
+          --advertise-address=\"{{ iid.ip }}\"
           --allow-privileged=true
           --apiserver-count=1
           --audit-log-maxage=30

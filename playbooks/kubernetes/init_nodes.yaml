@@ -1,6 +1,4 @@
 - hosts: kubernetes_nodes
-  vars:
-    SUBNET: 10.200.0.0/24
 
   tasks: 
     - name: display messages
@@ -10,17 +8,6 @@
       tags:
         - msg123
 
-          #- name: modify /etc/hosts
-          #  ansible.builtin.lineinfile:
-          #    path: /etc/hosts
-          #    state: present
-          #    line: "{{ item }}"
-          #  loop:
-          #    - "# Kubernetes The Hard Way"
-          #    - "127.0.1.1 node-0.kubernetes.local node-0"
-          #    - "192.168.1.20 server.kubernetes.local server"
-          #    - "192.168.1.21 node-0.kubernetes.local node-0"
-          #    - "192.168.1.22 node-1.kubernetes.local node-1"
     - name: install kubernetes apps for nodes
       community.general.portage:
         package: "{{ item }}"
@@ -144,8 +131,8 @@
     - name: Start services
       ansible.builtin.service:
         name: "{{ item }}"
-        state: started
-          #state: restarted
+          #state: started
+        state: restarted
       loop:
         - containerd
         - kubelet

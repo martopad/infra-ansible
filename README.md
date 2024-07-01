@@ -17,4 +17,6 @@ Things to improve:
 4. Refactor "init_server.yaml" to be 3 multiple playbooks. Currently, all of the functionalities
    of server (api-server, controller-manager, and scheduler) are all in one playbook. But in
    production environments these can be ran on different hosts and it should be decoupled for flexibility.
+5. Encryption at rest is still not implemented.
+6. Override ~/.kube/config generation behavior.
 

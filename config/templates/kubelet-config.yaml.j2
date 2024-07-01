@@ -13,7 +13,7 @@ clusterDomain: "cluster.local"
 clusterDNS:
   - "10.32.0.10"
 containerRuntimeEndpoint: "unix:///var/run/containerd/containerd.sock"
-podCIDR: "{{ SUBNET }}"
+podCIDR: "{{ iid.subnet }}"
 resolvConf: "/etc/resolv.conf"
 runtimeRequestTimeout: "15m"
 tlsCertFile: "/var/lib/kubelet/kubelet.crt"
