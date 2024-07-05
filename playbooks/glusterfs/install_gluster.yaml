@@ -1,0 +1,15 @@
+- hosts: nodes
+  tasks:
+    - name: Install gluster fs
+      community.general.portage:
+        package: sys-cluster/glusterfs
+        getbinpkg: true
+    - name: enable glusterd service
+      ansible.builtin.service:
+        name: glusterd
+        enabled: yes
+        runlevel: default
+    - name: Start glusterd
+      ansible.builtin.service:
+        name: glusterd
+        state: started
