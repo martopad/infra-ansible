@@ -19,4 +19,6 @@ Things to improve:
    production environments these can be ran on different hosts and it should be decoupled for flexibility.
 5. Encryption at rest is still not implemented.
 6. Override ~/.kube/config generation behavior.
+7. Refactor glusterfs provisioning code. It feels like the vars are unorganized and the playbooks are a mess
+8. Add revert counterparts to glusterfs playbooks.
 
