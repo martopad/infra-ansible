@@ -1,0 +1,20 @@
+- hosts: glusterfs_clients
+  tasks:
+    - name: include vars
+      ansible.builtin.include_vars:
+        file: glusterfs_vars.yaml 
+        name: glusterfs_vars
+    - name: print glusterfs_vars
+      ansible.builtin.debug:
+        msg: "{{ glusterfs_vars.brick_name }}"
+    - name: Create mountpoint
+      ansible.builtin.file:
+        path: "{{ glusterfs_vars.client_mount_point }}"
+        state: directory
+    - name: mount gluster volume
+      ansible.posix.mount:
+        fstype: glusterfs
+        src: "{{ glusterfs_vars.primary_node }}:{{ glusterfs_vars.volume_name }}"
+        path: "{{ glusterfs_vars.client_mount_point }}"
+        state: mounted # Include this in fstab? I don't know yet.
+

@@ -1,4 +1,4 @@
-- hosts: nodes
+- hosts: glusterfs_nodes
   tasks:
     - name: Install parted
       community.general.portage:
@@ -16,13 +16,14 @@
         fstype: xfs
         dev: "{{ iid.drive_partition }}"
           #force: true
+        # I wish there was an option like "if fstype doesnt match, format still". 
     - name: Create mount point folder
       ansible.builtin.file:
         path: "/export/{{ iid.partition }}"
         state: directory
     - name: add mountpoint to fstab # this should also include mounting but the module doesn't do that.
       ansible.posix.mount:
-        path: "/export/{{ iid.partition }}"
+        path: "{{ iid.mount_point }}"
         src: "{{ iid.drive_partition }}"
         fstype: xfs
         opts: defaults,noatime

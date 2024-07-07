@@ -1,0 +1,4 @@
+brick_name: brick
+volume_name: gv0
+client_mount_point: /mnt/gv0
+primary_node: un100d00
