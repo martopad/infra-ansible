@@ -1,15 +1,16 @@
 #!/bin/bash
-set -e
+set -ex
 
 SCRIPT_DIR=$(realpath "$0")
 BASE_DIR=$(dirname "$SCRIPT_DIR")
 OUT="${BASE_DIR}/generated"
 
-for host in node0 node1; do
+SERVER="un100d00"
+for host in rpi500 rpi501 rpi502 rpi503 rpi504 rpi505 un100d01 un100d02 un100d03; do
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=${OUT}/ca.crt \
     --embed-certs=true \
-    --server=https://server:6443 \
+    --server=https://${SERVER}:6443 \
     --kubeconfig=${OUT}/${host}.kubeconfig
 
   kubectl config set-credentials system:node:${host} \
@@ -30,7 +31,7 @@ done
 kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=${OUT}/ca.crt \
     --embed-certs=true \
-    --server=https://server:6443 \
+    --server=https://${SERVER}:6443 \
     --kubeconfig=${OUT}/kube-proxy.kubeconfig
 
 kubectl config set-credentials system:kube-proxy \
@@ -50,7 +51,7 @@ kubectl config use-context default \
 kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=${OUT}/ca.crt \
     --embed-certs=true \
-    --server=https://server:6443 \
+    --server=https://${SERVER}:6443 \
     --kubeconfig=${OUT}/kube-controller-manager.kubeconfig
 
 kubectl config set-credentials system:kube-controller-manager \
@@ -70,7 +71,7 @@ kubectl config use-context default \
 kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=${OUT}/ca.crt \
     --embed-certs=true \
-    --server=https://server:6443 \
+    --server=https://${SERVER}:6443 \
     --kubeconfig=${OUT}/kube-scheduler.kubeconfig
 
 kubectl config set-credentials system:kube-scheduler \
@@ -92,18 +93,18 @@ kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=${OUT}/ca.crt \
     --embed-certs=true \
     --server=https://127.0.0.1:6443 \
-    --kubeconfig=${OUT}/admin.kubeconfig
+    --kubeconfig=${OUT}/${SERVER}.kubeconfig
 
 kubectl config set-credentials admin \
-    --client-certificate=${OUT}/admin.crt \
-    --client-key=${OUT}/admin.key \
+    --client-certificate=${OUT}/${SERVER}.crt \
+    --client-key=${OUT}/${SERVER}.key \
     --embed-certs=true \
-    --kubeconfig=${OUT}/admin.kubeconfig
+    --kubeconfig=${OUT}/${SERVER}.kubeconfig
 
 kubectl config set-context default \
     --cluster=kubernetes-the-hard-way \
     --user=admin \
-    --kubeconfig=${OUT}/admin.kubeconfig
+    --kubeconfig=${OUT}/${SERVER}.kubeconfig
 
 kubectl config use-context default \
-    --kubeconfig=${OUT}/admin.kubeconfig
+    --kubeconfig=${OUT}/${SERVER}.kubeconfig

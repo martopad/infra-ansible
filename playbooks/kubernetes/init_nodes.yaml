@@ -7,7 +7,12 @@
           - "Current host: {{ iid.name }}"
       tags:
         - msg123
-
+    - name: Add accept keywords for kuberenetes packages for aarch64 (raspi5)
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.accept_keywords/kubernetes"
+        dest: "/etc/portage/package.accept_keywords/kubernetes"
+      when:
+        - ansible_architecture == "aarch64"
     - name: install kubernetes apps for nodes
       community.general.portage:
         package: "{{ item }}"
@@ -137,4 +142,6 @@
         - containerd
         - kubelet
         - kube-proxy
+      tags:
+        - just_restart
 

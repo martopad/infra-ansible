@@ -1,5 +1,4 @@
-- hosts: kubernetes_control_plane
-
+- hosts: kubernetes_control_plane # x86 only due to etcd not being available in arm64 portage
   tasks: 
     # - name: modify /etc/hosts
     #   ansible.builtin.lineinfile:
@@ -19,6 +18,12 @@
       loop: "{{ pods_routes | selectattr('node', 'equalto', iid.name) | map(attribute='routes') | flatten }}"
       tags:
         - msg123
+    - name: Add accept keywords for kuberenetes packages for aarch64 (raspi5) # WIP
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.accept_keywords/kubernetes"
+        dest: "/etc/portage/package.accept_keywords/kubernetes"
+      when:
+        - ansible_architecture == "aarch64"
     - name: Installing kubernetes server packages
       community.general.portage:
         package: "{{ item }}"
@@ -78,7 +83,7 @@
         owner: root
         group: root
       loop:
-        - "{{ playbook_dir }}/../../config/certs/generated/admin.kubeconfig"
+        - "{{ playbook_dir }}/../../config/certs/generated/{{ iid.name }}.kubeconfig"
         - "{{ playbook_dir }}/../../config/certs/generated/kube-controller-manager.kubeconfig"
         - "{{ playbook_dir }}/../../config/certs/generated/kube-scheduler.kubeconfig"
         - "{{ playbook_dir }}/../../config/static/kube-apiserver-to-kubelet.yaml"
@@ -104,12 +109,12 @@
         - "{{ playbook_dir }}/../../config/certs/generated/kube-api-server.crt"
         - "{{ playbook_dir }}/../../config/certs/generated/service-accounts.key"
         - "{{ playbook_dir }}/../../config/certs/generated/service-accounts.crt"
-        - "{{ playbook_dir }}/../../config/certs/generated/admin.kubeconfig"
+        - "{{ playbook_dir }}/../../config/certs/generated/{{ iid.name }}.kubeconfig"
         - "{{ playbook_dir }}/../../config/certs/generated/kube-controller-manager.kubeconfig"
         - "{{ playbook_dir }}/../../config/certs/generated/kube-scheduler.kubeconfig"
-    - name: give auth log 777
+    - name: give audit log 777
       ansible.builtin.file:
-        path: /var/log/auth.log
+        path: /var/log/audit.log
         owner: root
         group: root
         mode: '0777'
@@ -137,7 +142,7 @@
           --runtime-config='api/all=true'
           --service-account-key-file=/var/lib/kubernetes/service-accounts.crt
           --service-account-signing-key-file=/var/lib/kubernetes/service-accounts.key
-          --service-account-issuer=https://server:6443
+          --service-account-issuer=https:\"{{ iid.name }}\":6443
           --service-cluster-ip-range=10.32.0.0/24
           --service-node-port-range=30000-32767
           --tls-cert-file=/var/lib/kubernetes/kube-api-server.crt
@@ -198,5 +203,5 @@
           - -f
           - kube-apiserver-to-kubelet.yaml
           - --kubeconfig
-          - admin.kubeconfig
+          - "{{ iid.name }}.kubeconfig"
 

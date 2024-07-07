@@ -1,13 +1,23 @@
 #!/bin/bash 
-set -e
+set -ex
 
 SCRIPT_DIR=$(realpath "$0")
 BASE_DIR=$(dirname "$SCRIPT_DIR")
 OUT="${BASE_DIR}/generated"
 
 certs=(
-  "admin" "node0" "node1"
-  "kube-proxy" "kube-scheduler"
+  "rpi500"
+  "rpi501"
+  "rpi502"
+  "rpi503"
+  "rpi504"
+  "rpi505"
+  "un100d00"
+  "un100d01"
+  "un100d02"
+  "un100d03"
+  "kube-proxy"
+  "kube-scheduler"
   "kube-controller-manager"
   "kube-api-server"
   "service-accounts"

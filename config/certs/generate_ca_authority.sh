@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 SCRIPT_DIR=$(realpath "$0")
 BASE_DIR=$(dirname "$SCRIPT_DIR")
