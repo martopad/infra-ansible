@@ -1,0 +1,30 @@
+- hosts: etcd_nodes
+  tasks: 
+    - name: Stop etcd
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - etcd
+    - name: Disable etcd
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: false
+      loop:
+        - etcd
+    - name: Uninstalling etcd
+      community.general.portage:
+        package: "{{ item }}"
+        state: absent
+        depclean: true
+      loop:
+        - dev-db/etcd
+    - name: delete Etcd dirs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/etcd
+        - /var/lib/etcd
+        - /var/lib/kubernetes'
+        - /etc/init.d/etcd

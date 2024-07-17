@@ -6,8 +6,6 @@
         name: "{{ item }}"
         state: stopped
       loop:
-        - dev-db/etcd
-        - docker
         - kube-apiserver
         - kube-controller-manager
         - kube-scheduler
@@ -16,8 +14,6 @@
         name: "{{ item }}"
         enabled: false
       loop:
-        - etcd
-        - docker
         - kube-apiserver
         - kube-controller-manager
         - kube-scheduler
@@ -27,9 +23,6 @@
         state: absent
         depclean: true
       loop:
-        - app-containers/docker
-        - app-containers/docker-cli
-        - dev-db/etcd
         - sys-cluster/kubectl
         - sys-cluster/kube-apiserver
         - sys-cluster/kube-controller-manager
@@ -42,9 +35,6 @@
         path: "{{ item }}"
         state: absent
       loop:
-        - /etc/etcd
-        - /etc/kubernetes/config
-        - /var/lib/etcd 
         - /var/lib/kubernetes
     - name: Remove files
       ansible.builtin.file:
@@ -55,6 +45,5 @@
         - /etc/init.d/kube-controller-manager
         - /etc/init.d/kube-scheduler
         - /root/admin.kubeconfig
-        - /root/kube-apiserver-to-kubelet.yaml
         - /root/kube-controller-manager.kubeconfig
         - /root/kube-scheduler.kubeconfig

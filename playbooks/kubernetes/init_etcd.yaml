@@ -1,0 +1,81 @@
+- hosts: etcd_nodes # x86 only due to etcd not being available in arm64 portage
+  tasks: 
+    - name: Installing etcd
+      community.general.portage:
+        package: "{{ item }}"
+        getbinpkg: true
+      loop:
+        - dev-db/etcd
+    - name: enable kubernetes server services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: yes
+        runlevel: default
+      loop:
+        - etcd
+    - name: Etcd dir
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /etc/etcd
+        - /var/lib/etcd
+        - /var/lib/kubernetes
+        - /var/lib/kubernetes/pki
+    - name: Etcd files
+      ansible.builtin.copy:
+        src: "{{ item.file }}" 
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "{{ item.perm }}"
+      loop:
+        # TODO: 0444 permission is not correct here
+        - { file: "{{ playbook_dir }}/../../config/certs/generated/etcd-server.key", perm: '0777', dest: /etc/etcd/ }
+        - { file: "{{ playbook_dir }}/../../config/certs/generated/etcd-server.crt", perm: '0777', dest: /etc/etcd/ }
+        - { file: "{{ playbook_dir }}/../../config/certs/generated/ca.crt", perm: '0777', dest: /etc/etcd/ } # Should be symlink but its okay for now.
+        - { file: "{{ playbook_dir }}/../../config/certs/generated/ca.crt", perm: '0777', dest: /var/lib/kubernetes/pki/ }
+
+    # TODO: This commented section should replace manual modification of etcd init file. It is better to use this conf.yml file in the future.
+#    - name: Modify default conf.yml
+#      ansible.builtin.lineinfile:
+#        path: /etc/etcd/etcd.conf.yml
+#        regexp: "{{ item.line_to_find }}"
+#        line: "{{ item.replacement }}"
+#      loop:
+#        - { line_to_find: "^name:", replacement: "name: {{ iid.name }}" }
+
+    - name: Modify etcd init file
+      ansible.builtin.lineinfile:
+        path: /etc/init.d/etcd
+        regexp: '^command_args='
+        line: command_args="
+          --name {{ iid_etcd.flags_name }}
+          --cert-file=/etc/etcd/etcd-server.crt
+          --key-file=/etc/etcd/etcd-server.key
+          --peer-cert-file=/etc/etcd/etcd-server.crt
+          --peer-key-file=/etc/etcd/etcd-server.key
+          --trusted-ca-file=/etc/etcd/ca.crt
+          --peer-trusted-ca-file=/etc/etcd/ca.crt
+          --peer-client-cert-auth
+          --client-cert-auth
+          --initial-advertise-peer-urls https://{{ iid.ip }}:2380
+          --listen-peer-urls https://{{ iid.ip }}:2380
+          --listen-client-urls https://{{ iid.ip }}:2379,https://127.0.0.1:2379
+          --advertise-client-urls https://{{ iid.ip }}:2379
+          --initial-cluster-token etcd-cluster-0
+          --initial-cluster {{ iid_etcd.flags_initial_cluster }}
+          --initial-cluster-state new
+          --data-dir=/var/lib/etcd"
+      tags:
+        - modif_serv
+    - name: start etcd
+      ansible.builtin.service:
+        name: "{{ item }}"
+        # state: started
+        state: restarted
+      loop:
+        - etcd
+      tags:
+        - start_services
+
