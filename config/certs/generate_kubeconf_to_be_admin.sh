@@ -9,14 +9,18 @@ OUT="${BASE_DIR}/generated"
 kubectl config set-cluster kubernetes-the-hard-way \
   --certificate-authority=${OUT}/ca.crt \
   --embed-certs=true \
-  --server=https://un100d00:6443
+  --server=https://127.0.0.1:6443 \
+  --kubeconfig=${OUT}/admin.kubeconfig
 
 kubectl config set-credentials admin \
-  --client-certificate=${OUT}/un100d00.crt \
-  --client-key=${OUT}/un100d00.key
+  --client-certificate=${OUT}/admin.crt \
+  --client-key=${OUT}/admin.key \
+  --embed-certs=true \
+  --kubeconfig=${OUT}/admin.kubeconfig
 
-kubectl config set-context kubernetes-the-hard-way \
+kubectl config set-context default \
   --cluster=kubernetes-the-hard-way \
-  --user=admin
+  --user=admin \
+  --kubeconfig=${OUT}/admin.kubeconfig
 
-kubectl config use-context kubernetes-the-hard-way
+kubectl config use-context default --kubeconfig=${OUT}/admin.kubeconfig
