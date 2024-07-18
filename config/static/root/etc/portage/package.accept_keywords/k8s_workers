@@ -1,0 +1,5 @@
+sys-cluster/kubelet ~arm64
+sys-cluster/kube-proxy ~arm64
+net-firewall/conntrack-tools ~arm64
+net-libs/libnetfilter_cthelper ~arm64
+net-libs/libnetfilter_cttimeout ~arm64

@@ -3,9 +3,3 @@ sys-cluster/kubectl ~arm64
 sys-cluster/kube-apiserver ~arm64
 sys-cluster/kube-controller-manager ~arm64
 sys-cluster/kube-scheduler ~arm64
-# nodes
-sys-cluster/kubelet ~arm64
-sys-cluster/kube-proxy ~arm64
-net-firewall/conntrack-tools ~arm64
-net-libs/libnetfilter_cthelper ~arm64
-net-libs/libnetfilter_cttimeout ~arm64

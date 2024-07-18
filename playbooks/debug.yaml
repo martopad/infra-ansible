@@ -1,0 +1,13 @@
+- hosts: kubernetes_control_plane
+  tasks:
+    - name: display messages
+      debug:
+        msg:
+          - "{{ item }}"
+            #loop: "{{ pods_routes | selectattr('node', 'equalto', iid.name) | map(attribute='routes') | flatten }}"
+      loop:
+        - "{{ iid_control_plane.flags_cluster_ip_range }}"
+        - "{{ iid_control_plane.flags_etcd_servers }}"
+        - "{{ iid_control_plane.flags_account_issuer }}"
+        - "{{ iid_control_plane.flags_pod_cidr }}"
+      

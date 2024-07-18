@@ -1,0 +1,17 @@
+# This little playbook is needed because worker nodes needs some kernel modules and parameters enabled.
+# For it to take effect, it needs a restart. Hence this.
+
+- hosts: kubernetes_nodes
+  tasks:  
+    - name: Enable kernel modules and parameters at startup.
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/static/root/etc/modules-load.d/k8s_workers.conf"
+        dest: "/etc/modules-load.d//k8s_workers.conf"
+#   - name: Enable cgroups support in openrckjkk
+#     ansible.builtin.lineinfile:
+#       path: /etc/init.d/kubelet
+#       regexp: '^command_args='
+#       state: present
+#       line: command_args="
+    - name: Reboot to take effect
+      ansible.builtin.reboot:

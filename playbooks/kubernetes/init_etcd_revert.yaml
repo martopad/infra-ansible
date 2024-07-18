@@ -24,7 +24,8 @@
         path: "{{ item }}"
         state: absent
       loop:
-        - /etc/etcd
-        - /var/lib/etcd
-        - /var/lib/kubernetes'
         - /etc/init.d/etcd
+        - /etc/etcd/etcd-server.key
+        - /etc/etcd/etcd-server.crt
+        - /etc/etcd/ca.crt # Should be symlink but its okay for now.
+        - /var/lib/kubernetes/pki/ca.crt

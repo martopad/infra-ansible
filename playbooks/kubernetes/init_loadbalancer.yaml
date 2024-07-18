@@ -1,11 +1,11 @@
-- hosts: kubernetes_loadbalancer
+- hosts: kubernetes_load_balancer
   tasks: 
-    - name: Add accept keywords for kuberenetes packages for aarch64 (raspi5) # WIP
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.accept_keywords/kubernetes"
-        dest: "/etc/portage/package.accept_keywords/kubernetes"
-      when:
-        - ansible_architecture == "aarch64"
+#   - name: Add accept keywords for kuberenetes packages for aarch64 (raspi5) # WIP
+#     ansible.builtin.copy:
+#       src: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.accept_keywords/kubernetes"
+#       dest: "/etc/portage/package.accept_keywords/kubernetes"
+#     when:
+#       - ansible_architecture == "aarch64"
     - name: transfer package.uses
       ansible.builtin.copy:
         src: "{{ item.file }}"

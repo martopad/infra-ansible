@@ -1,0 +1,11 @@
+# This little playbook is needed because worker nodes needs some kernel modules and parameters enabled.
+# For it to take effect, it needs a restart. Hence this.
+
+- hosts: kubernetes_nodes
+  tasks: 
+    - name: Enable kernel modules and parameters at startup.
+      ansible.builtin.file:
+        path: /etc/modules-load.d/k8s_workers.conf/k8s_workers.conf
+        state: absent
+    - name: Reboot to take effect
+      ansible.builtin.reboot:

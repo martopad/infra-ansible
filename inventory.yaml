@@ -1,5 +1,10 @@
 #iid = inventory item data
 all:
+  vars:
+    iid_k8s_cluster_data:
+      cluster_cidr: 10.69.0.0/16
+      pod_cidr: 10.244.0.0/16
+      cluster_dns: 10.96.0.10
   hosts:
     rpi500:
       iid:
@@ -76,40 +81,41 @@ all:
         partition: nvme0n1p1
         subnetflags_: 10.200.9.0/24
 
+# For kubernetes components, the values are not "hardcoded" per se. But changing hosts is not a trivial task.
+# Additional care is still needed. The next goal is to be able to easily modify which nodes kubernetes components
+# are installed.
 etcd_nodes:
-  # TODO: Remove hard coded IP. I do not know how variable references work yet.
   hosts:
     un100d00:
       iid_etcd:
-        flags_name: un100d00
-        flags_initial_cluster: 'un100d00=https://192.168.1.22:2380,un100d01=https://192.168.1.21:2380'
+        flags_name: "{{ hostvars['un100d00']['iid']['name'] }}"
+        flags_initial_cluster: "{{ hostvars['un100d00']['iid']['name'] }}=https://{{ hostvars['un100d00']['iid']['ip'] }}:2380,{{ hostvars['un100d01']['iid']['name'] }}=https://{{ hostvars['un100d01']['iid']['ip'] }}:2380"
     un100d01:
       iid_etcd:
-        flags_name: un100d01
-        flags_initial_cluster: 'un100d00=https://192.168.1.22:2380,un100d01=https://192.168.1.21:2380'
+        flags_name: "{{ hostvars['un100d01']['iid']['name'] }}"
+        flags_initial_cluster: "{{ hostvars['un100d00']['iid']['name'] }}=https://{{ hostvars['un100d00']['iid']['ip'] }}:2380,{{ hostvars['un100d01']['iid']['name'] }}=https://{{ hostvars['un100d01']['iid']['ip'] }}:2380 "
+ 
+kubernetes_control_plane:
+  hosts:
+    rpi501:
+      iid_control_plane:
+        flags_etcd_servers: "https://{{ hostvars['un100d00']['iid']['ip'] }}:2379,https://{{ hostvars['un100d01']['iid']['ip'] }}:2379"
+        flags_account_issuer: "{{ hostvars['rpi500']['iid']['ip'] }}" # loadbalancer
+        flags_cluster_ip_range: "{{ iid_k8s_cluster_data.cluster_cidr }}"
+        flags_pod_cidr: "{{ iid_k8s_cluster_data.pod_cidr }}"
+    rpi502:
+      iid_control_plane:
+        flags_etcd_servers: "https://{{ hostvars['un100d00']['iid']['ip'] }}:2379,https://{{ hostvars['un100d01']['iid']['ip'] }}:2379"
+        flags_account_issuer: "{{ hostvars['rpi500']['iid']['ip'] }}" # loadbalancer
+        flags_cluster_ip_range: "{{ iid_k8s_cluster_data.cluster_cidr }}"
+        flags_pod_cidr: "{{ iid_k8s_cluster_data.pod_cidr }}"
 
 kubernetes_load_balancer:
   hosts:
-    un100d02:
+    rpi500:
       iid_load_balancer:
-        controlplane01: 192.168.1.22
-        controlplane02: 192.168.1.21
-    
-kubernetes_control_plane:
-  # TODO: Remove hard coded IP. I do not know how variable references work yet.
-  hosts:
-    un100d00:
-      iid_control_plane:
-        flags_etcd_servers: https://192.168.1.22:2379,https://192.168.1.21:2379
-        flags_account_issuer: 192.168.1.34 #un100d02 loadbalancer
-        flags_cluster_ip_range: 10.96.0.0/16
-        flags_pod_cidr: 10.244.0.0/16
-    un100d01:
-      iid_control_plane:
-        flags_etcd_servers: https://192.168.1.22:2379,https://192.168.1.21:2379
-        flags_account_issuer: 192.168.1.34 #un100d02 loadbalancer
-        flags_cluster_ip_range: 10.96.0.0/16
-        flags_pod_cidr: 10.244.0.0/16
+        controlplane01: "{{ hostvars['rpi501']['iid']['ip'] }}"
+        controlplane02: "{{ hostvars['rpi502']['iid']['ip'] }}"
 
 kubernetes_nodes:
   hosts:

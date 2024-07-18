@@ -1,27 +1,9 @@
 - hosts: kubernetes_control_plane # x86 only due to etcd not being available in arm64 portage
   tasks: 
-    # - name: modify /etc/hosts
-    #   ansible.builtin.lineinfile:
-    #     path: /etc/hosts
-    #     state: present
-    #     line: "{{ item }}"
-    #   loop:
-    #     - "# Kubernetes The Hard Way"
-    #     - "127.0.1.1 server.kubernetes.local server"
-    #       #- "192.168.1.20 server.kubernetes.local server"
-    #       #- "192.168.1.21 node-0.kubernetes.local node-0"
-    #       #- "192.168.1.22 node-1.kubernetes.local node-1"
-    - name: display messages
-      debug:
-        msg:
-          - "{{ item }}"
-      loop: "{{ pods_routes | selectattr('node', 'equalto', iid.name) | map(attribute='routes') | flatten }}"
-      tags:
-        - msg123
     - name: Add accept keywords for kuberenetes packages for aarch64 (raspi5) # WIP
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.accept_keywords/kubernetes"
-        dest: "/etc/portage/package.accept_keywords/kubernetes"
+        src: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.accept_keywords/k8s_control_plane"
+        dest: "/etc/portage/package.accept_keywords/k8s_control_plane"
       when:
         - ansible_architecture == "aarch64"
     - name: Installing kubernetes server packages
