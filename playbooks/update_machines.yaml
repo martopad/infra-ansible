@@ -1,0 +1,11 @@
+- hosts: all
+  tasks: 
+    - name: Sync gentoo repo
+      community.general.portage:
+        sync: true
+    - name: Update
+      community.general.portage:
+        package: '@world'
+        getbinpkg: true
+        update: true
+        deep: true

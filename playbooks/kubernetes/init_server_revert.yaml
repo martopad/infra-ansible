@@ -6,17 +6,20 @@
         name: "{{ item }}"
         state: stopped
       loop:
-        - kube-apiserver
         - kube-controller-manager
         - kube-scheduler
+    - name: Stop api-server
+      ansible.builtin.service:
+        name: kube-apiserver
+        state: stopped
     - name: Disable kubernetes server services
       ansible.builtin.service:
         name: "{{ item }}"
         enabled: false
       loop:
-        - kube-apiserver
         - kube-controller-manager
         - kube-scheduler
+        - kube-apiserver
     - name: Uninstalling kubernetes server packages
       community.general.portage:
         package: "{{ item }}"
@@ -30,13 +33,7 @@
     - name: Remove uneeded packages
       community.general.portage:
         depclean: true
-    - name: Remove dirs
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /var/lib/kubernetes
-    - name: Remove files
+    - name: Remove dirs/files
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
@@ -47,3 +44,21 @@
         - /root/admin.kubeconfig
         - /root/kube-controller-manager.kubeconfig
         - /root/kube-scheduler.kubeconfig
+# Note: commented section because of dependency with etcd
+#       the design right now is etcd and control plane lives in the same host
+#       - /etc/etcd/ca.key
+#       - /etc/etcd/ca.crt # Should be symlink but its okay for now.
+#       - /var/lib/kubernetes/pki/ca.key
+#       - /var/lib/kubernetes/pki/ca.crt
+        - /var/lib/kubernetes/pki/kube-apiserver.key
+        - /var/lib/kubernetes/pki/kube-apiserver.crt
+        - /var/lib/kubernetes/pki/service-account.key
+        - /var/lib/kubernetes/pki/service-account.crt
+        - /var/lib/kubernetes/pki/apiserver-kubelet-client.key
+        - /var/lib/kubernetes/pki/apiserver-kubelet-client.crt
+        - /var/lib/kubernetes/pki/etcd-server.key
+        - /var/lib/kubernetes/pki/etcd-server.crt
+        - /var/lib/kubernetes/pki/kube-scheduler.key
+        - /var/lib/kubernetes/pki/kube-scheduler.crt
+        - /var/lib/kubernetes/pki/kube-controller-manager.key
+        - /var/lib/kubernetes/pki/kube-controller-manager.crt

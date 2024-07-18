@@ -183,9 +183,15 @@
           #state: started
         state: restarted
       loop:
-        - kube-apiserver
         - kube-controller-manager
         - kube-scheduler
+      tags:
+        - start_services
+    - name: start api-server
+      ansible.builtin.service:
+        name: kube-apiserver
+          #state: started
+        state: restarted
       tags:
         - start_services
           #    - name: Create system:kube-apiserver-to-kubelet cluster role

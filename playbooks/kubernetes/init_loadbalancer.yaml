@@ -1,0 +1,47 @@
+- hosts: kubernetes_loadbalancer
+  tasks: 
+    - name: Add accept keywords for kuberenetes packages for aarch64 (raspi5) # WIP
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.accept_keywords/kubernetes"
+        dest: "/etc/portage/package.accept_keywords/kubernetes"
+      when:
+        - ansible_architecture == "aarch64"
+    - name: transfer package.uses
+      ansible.builtin.copy:
+        src: "{{ item.file }}"
+        dest:  "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - { file: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.use/haproxy",dest: /etc/portage/package.use/haproxy }
+    - name: Installing kubernetes server packages
+      community.general.portage:
+        package: "{{ item }}"
+        getbinpkg: true
+      loop:
+        - net-proxy/haproxy
+    - name: fill and transfer templated configs
+      ansible.builtin.template:
+        src: "{{ item.file }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - { file: "{{ playbook_dir }}/../../config/templates/root/etc/haproxy/haproxy.cfg.j2", dest: /etc/haproxy/haproxy.cfg }
+    - name: enable kubernetes server services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: yes
+        runlevel: default
+      loop:
+        - haproxy
+    - name: start kubernetes server services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: started
+          #state: restarted
+      loop:
+        - haproxy
+

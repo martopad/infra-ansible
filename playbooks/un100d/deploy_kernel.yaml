@@ -1,0 +1,19 @@
+# Kernel is built as a UKI. Specifying kernel version here is jank.
+# But this is the simplest solution for now. un100d's do now behave
+# the same as "regular UEFI" hence this custom playbook.
+# TODO: Maybe create a custom ebuild/helper script to better handle
+# kernel deployment.
+- hosts: un100d
+  vars:
+    kernel_version: 6.6.35-gentoo-dist
+  tasks:
+    - name: Create backup of currently released kernel
+      ansible.builtin.copy:
+        src: /efi/EFI/Boot/bootx64.efi
+        dest: /efi/EFI/Boot/bootx64.efi.BU
+        remote_src: yes
+    - name: Release new Kernel
+      ansible.builtin.copy:
+        src: "/boot/vmlinuz-{{ kernel_version}}.efi"
+        dest: /efi/EFI/Boot/bootx64.efi
+        remote_src: yes

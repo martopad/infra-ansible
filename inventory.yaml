@@ -87,6 +87,13 @@ etcd_nodes:
       iid_etcd:
         flags_name: un100d01
         flags_initial_cluster: 'un100d00=https://192.168.1.22:2380,un100d01=https://192.168.1.21:2380'
+
+kubernetes_load_balancer:
+  hosts:
+    un100d02:
+      iid_load_balancer:
+        controlplane01: 192.168.1.22
+        controlplane02: 192.168.1.21
     
 kubernetes_control_plane:
   # TODO: Remove hard coded IP. I do not know how variable references work yet.
@@ -116,10 +123,11 @@ kubernetes_nodes:
     un100d02:
     un100d03:
 
-kubernetes_jumpbox:
-  hosts:
-    jumpbox:
-      ansible_host: local
+
+      # kubernetes_jumpbox:
+      #   hosts:
+      #     jumpbox:
+      #       ansible_host: local
         
 glusterfs_primary:
   hosts:
@@ -145,3 +153,18 @@ glusterfs_clients:
     un100d02:
     un100d03:
 
+un100d:
+  hosts:
+    un100d00:
+    un100d01:
+    un100d02:
+    un100d03:
+
+rpi:
+  hosts:
+    rpi500:
+    rpi501:
+    rpi502:
+    rpi503:
+    rpi504:
+    rpi505:

@@ -1,0 +1,32 @@
+- hosts: kubernetes_load_balancer
+
+  tasks: 
+    - name: Stop haproxy
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - haproxy
+    - name: Disable haproxy
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: false
+      loop:
+        - haproxy
+    - name: Uninstall haproxy
+      community.general.portage:
+        package: "{{ item }}"
+        state: absent
+        depclean: true
+      loop:
+        - net-proxy/haproxy
+    - name: Remove uneeded packages
+      community.general.portage:
+        depclean: true
+    - name: Remove files/dirs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/portage/package.use/haproxy
+        - /etc/haproxy/haproxy.cfg

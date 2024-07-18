@@ -1,0 +1,4 @@
+- hosts: rpi
+  tasks:
+    - name: Reboot un100d machines
+      ansible.builtin.reboot:

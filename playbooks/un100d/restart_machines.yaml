@@ -1,0 +1,4 @@
+- hosts: un100d
+  tasks:
+    - name: Reboot un100d machines
+      ansible.builtin.reboot:
