@@ -5,6 +5,8 @@ SCRIPT_DIR=$(realpath "$0")
 BASE_DIR=$(dirname "$SCRIPT_DIR")
 OUT="${BASE_DIR}/generated"
 
+ARG_LOADBALANCER_IP=$1
+
 gen_kubeconf() {
     local node_ip=$1
     local role=$2
@@ -29,7 +31,7 @@ gen_kubeconf() {
 }
 
 gen_kubeconf \
-    "192.168.1.34" \
+    "${ARG_LOADBALANCER_IP}" \
     "kube-proxy" \
     "system:kube-proxy" \
     "${OUT}/kube-proxy.kubeconfig"
