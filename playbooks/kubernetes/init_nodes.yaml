@@ -29,11 +29,6 @@
         - /var/lib/kubernetes
         - /var/lib/kubernetes/pki
         - /var/run/kubernetes
-          #    - name: Create kubelet dir
-          #      ansible.builtin.file:
-          #        path: /var/lib/kubelet
-          #        state: directory
-          #        mode: '0755'
     - name: Transfer Certs
       ansible.builtin.copy:
         src: "{{ item.file }}" 
@@ -61,20 +56,6 @@
         - { file: "{{ playbook_dir }}/../../config/templates/root/var/lib/kubelet/kubelet-config.yaml.j2", dest: /var/lib/kubelet/kubelet-config.yaml }
         - { file: "{{ playbook_dir }}/../../config/templates/root/var/lib/kube-proxy/kube-proxy-config.yaml.j2", dest: /var/lib/kube-proxy/kube-proxy-config.yaml }
         - { file: "{{ playbook_dir }}/../../config/templates/root/var/lib/kube-proxy/kube-proxy-config.yaml.j2", dest: /var/lib/kube-proxy/kube-proxy-config.yaml }
-      tags:
-        - test123
-#   - name: transfer non templated configs
-#     ansible.builtin.copy:
-#       src: "{{ item.file }}"
-#       dest:  "{{ item.dest }}"
-#       owner: root
-#       group: root
-#     loop:
-#       - { file: "{{ playbook_dir }}/../../config/certs/generated/kube-proxy.kubeconfig",dest: /var/lib/kube-proxy/kubeconfig }
-#       - { file: "{{ playbook_dir }}/../../config/certs/generated/{{ iid.name }}.kubeconfig", dest: /var/lib/kubelet/kubeconfig }
-#       - { file: "{{ playbook_dir }}/../../config/static/99-loopback.conf", dest: /etc/cni/net.d/99-loopback.conf }
-#       - { file: "{{ playbook_dir }}/../../config/static/containerd-config.toml", dest: /etc/containerd/containerd-config.toml }          
-#       - { file: "{{ playbook_dir }}/../../config/static/kube-proxy-config.yaml", dest: /var/lib/kube-proxy/kube-proxy-config.yaml }
     - name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
       shell: |
         swapoff -a
