@@ -5,6 +5,9 @@ all:
       cluster_cidr: 10.69.0.0/16
       pod_cidr: 10.244.0.0/16
       cluster_dns: 10.96.0.10
+    iid_k8s_tls_bootstrapping:
+      token_id: 07401b
+      token_secret: f395accd246ae52d
   hosts:
     rpi500:
       iid:
