@@ -1,0 +1,13 @@
+- hosts: kubernetes_control_plane
+  tasks: 
+    - name: Stop server services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - kube-controller-manager
+        - kube-scheduler
+    - name: Stop api-server
+      ansible.builtin.service:
+        name: kube-apiserver
+        state: stopped

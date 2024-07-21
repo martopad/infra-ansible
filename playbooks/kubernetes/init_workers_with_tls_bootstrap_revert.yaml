@@ -39,15 +39,16 @@
       loop:
         - /etc/init.d/kubelet
         - /etc/init.d/kube-proxy
-          # - /var/lib/kubernetes/pki/node-{{ iid.name }}.key
-          # - /var/lib/kubernetes/pki/node-{{ iid.name }}.crt
           # - /var/lib/kubernetes/pki/ca.crt
         - /var/lib/kubernetes/pki/kube-proxy.key
         - /var/lib/kubernetes/pki/kube-proxy.crt
         - /var/lib/kube-proxy/kube-proxy.kubeconfig
-        - /var/lib/kubelet/kubelet.kubeconfig
+        - /var/lib/kubelet/bootstrap-kubeconfig
         - /var/lib/kubelet/kubelet-config.yaml
         - /var/lib/kube-proxy/kube-proxy-config.yaml
+        # files are generated during tls bootstrapping
+        - /var/lib/kubelet/kubeconfig
+        - /var/lib/kubelet/pki/
     - name: Reenable SWAP in fstab (1/2)
       replace:
         path: /etc/fstab

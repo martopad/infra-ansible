@@ -1,0 +1,17 @@
+- hosts: kubernetes_control_plane
+  vars:
+    op_dir: /root/tls_bootstrap
+  tasks:
+    - name: Delete created resources
+      run_once: true
+      ansible.builtin.shell:
+        cmd: kubectl delete --kubeconfig admin.kubeconfig -f "{{ op_dir }}/{{ item }}"
+        chdir: /root
+      loop:
+        - allow-apiserver-to-kubelet-api.yaml
+        - bind-kube-apiserver-to-kubelet-to-kube-apiserver-user.yaml
+#   - name: Create folder for yaml configs for easier cleanup
+#     run_once: true
+#     ansible.builtin.file:
+#       path: "{{ op_dir }}"
+#       state: absent

@@ -6,21 +6,20 @@ SCRIPT_DIR=$(realpath "$0")
 BASE_DIR=$(dirname "$SCRIPT_DIR")
 OUT="${BASE_DIR}/generated"
 
+ARG_LOAD_BALANCER_IP=$1
+
 kubectl config set-cluster kubernetes-the-hard-way \
   --certificate-authority=${OUT}/ca.crt \
   --embed-certs=true \
-  --server=https://127.0.0.1:6443 \
-  --kubeconfig=${OUT}/admin.kubeconfig
+  --server=https://${ARG_LOAD_BALANCER_IP}:6443 \
 
 kubectl config set-credentials admin \
   --client-certificate=${OUT}/admin.crt \
   --client-key=${OUT}/admin.key \
   --embed-certs=true \
-  --kubeconfig=${OUT}/admin.kubeconfig
 
-kubectl config set-context default \
+kubectl config set-context kubernetes-the-hard-way \
   --cluster=kubernetes-the-hard-way \
   --user=admin \
-  --kubeconfig=${OUT}/admin.kubeconfig
 
-kubectl config use-context default --kubeconfig=${OUT}/admin.kubeconfig
+kubectl config use-context kubernetes-the-hard-way

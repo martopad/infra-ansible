@@ -1,3 +1,5 @@
+# Note: For some reason, new nodes automatically get admitted as part of the cluster.
+#       I want a similar experience to the tutorial wherein new nodes needs to be manually approved.
 - hosts: kubernetes_worker
   tasks: 
     - name: Add accept keywords for kuberenetes packages for aarch64 (raspi5)
@@ -28,8 +30,7 @@
         - /var/lib/kube-proxy
         - /var/lib/kubernetes
         - /var/lib/kubernetes/pki
-        - /var/run/kubernetes
-    - name: Transfer Certs
+    - name: Transfer certs and configs
       ansible.builtin.copy:
         src: "{{ item.file }}" 
         dest: "{{ item.dest }}"
@@ -38,13 +39,10 @@
         mode: "{{ item.perm }}"
       loop:
         # TODO: permissions are not correct here
-        - { file: "{{ playbook_dir }}/../../config/certs/generated/node-{{ iid.name }}.key", perm: '0777', dest: /var/lib/kubernetes/pki/ }
-        - { file: "{{ playbook_dir }}/../../config/certs/generated/node-{{ iid.name }}.crt", perm: '0777', dest: /var/lib/kubernetes/pki/ }
         - { file: "{{ playbook_dir }}/../../config/certs/generated/ca.crt", perm: '0777', dest: /var/lib/kubernetes/pki/ }
         - { file: "{{ playbook_dir }}/../../config/certs/generated/kube-proxy.key", perm: '0777', dest: /var/lib/kubernetes/pki/ }
         - { file: "{{ playbook_dir }}/../../config/certs/generated/kube-proxy.crt", perm: '0777', dest: /var/lib/kubernetes/pki/ }
         - { file: "{{ playbook_dir }}/../../config/certs/generated/kube-proxy.kubeconfig", perm: '0777', dest: /var/lib/kube-proxy/ }
-        - { file: "{{ playbook_dir }}/../../config/certs/generated/node-{{ iid.name }}.kubeconfig", perm: '0777', dest: /var/lib/kubelet/kubelet.kubeconfig }
     - name: fill and transfer templated configs
       ansible.builtin.template:
         src: "{{ item.file }}"
@@ -53,7 +51,8 @@
         group: root
         mode: '0644'
       loop:
-        - { file: "{{ playbook_dir }}/../../config/templates/root/var/lib/kubelet/kubelet-config.yaml.j2", dest: /var/lib/kubelet/kubelet-config.yaml }
+        - { file: "{{ playbook_dir }}/../../config/templates/root/var/lib/kubelet/bootstrap-kubeconfig.j2", dest: /var/lib/kubelet/bootstrap-kubeconfig }
+        - { file: "{{ playbook_dir }}/../../config/templates/root/var/lib/kubelet/kubelet-config-with-tls-bootstrap.yaml.j2", dest: /var/lib/kubelet/kubelet-config.yaml }
         - { file: "{{ playbook_dir }}/../../config/templates/root/var/lib/kube-proxy/kube-proxy-config.yaml.j2", dest: /var/lib/kube-proxy/kube-proxy-config.yaml }
     - name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
       shell: |
@@ -77,10 +76,12 @@
         path: /etc/init.d/kubelet
         regexp: '^command_args='
         state: present
+        # Note: /var/lib/kubelet/kubeconfig will be created after a successful bootstrap
         line: command_args="
+          --bootstrap-kubeconfig=/var/lib/kubelet/bootstrap-kubeconfig
           --config=/var/lib/kubelet/kubelet-config.yaml
-          --kubeconfig=/var/lib/kubelet/kubelet.kubeconfig
-          --register-node=true
+          --kubeconfig=/var/lib/kubelet/kubeconfig
+          --cert-dir=/var/lib/kubelet/pki/
           --node-ip={{ iid.ip }}
           --v=2
           ${command_args}"

@@ -1,0 +1,30 @@
+# run_once: true is required here since it only needs to be applied once from a control_plane to apply to whole cluster.
+- hosts: kubernetes_control_plane
+  vars:
+    op_dir: /root/tls_bootstrap
+  tasks:
+    - name: Create folder for yaml configs for easier cleanup
+      run_once: true
+      ansible.builtin.file:
+        path: "{{ op_dir }}"
+        state: directory
+    - name: transfer static configs
+      run_once: true
+      ansible.builtin.template:
+        src: "{{ item.file }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - { file: "{{ playbook_dir }}/../../config/static/root/root/allow-apiserver-to-kubelet-api.yaml", dest: "{{ op_dir }}/allow-apiserver-to-kubelet-api.yaml" }
+        - { file: "{{ playbook_dir }}/../../config/static/root/root/bind-kube-apiserver-to-kubelet-to-kube-apiserver-user.yaml", dest: "{{ op_dir }}/bind-kube-apiserver-to-kubelet-to-kube-apiserver-user.yaml" }
+    - name: Apply config files
+      run_once: true
+      ansible.builtin.shell:
+        cmd: kubectl create --kubeconfig admin.kubeconfig -f "{{ op_dir }}/{{ item }}"
+        chdir: /root
+      loop:
+        - allow-apiserver-to-kubelet-api.yaml
+        - bind-kube-apiserver-to-kubelet-to-kube-apiserver-user.yaml
+

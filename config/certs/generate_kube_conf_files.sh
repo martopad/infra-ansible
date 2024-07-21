@@ -48,3 +48,8 @@ gen_kubeconf \
     "system:kube-scheduler" \
     "${OUT}/kube-scheduler.kubeconfig"
 
+gen_kubeconf \
+    "127.0.0.1" \
+    "admin" \
+    "admin" \
+    "${OUT}/admin.kubeconfig"
