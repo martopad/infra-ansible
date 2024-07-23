@@ -1,6 +1,30 @@
 # infra-ansible-kubernetes
-Leaning ansible and kubernetes.
-This aims to automate kubernetes-the-hard-way by kelseyhightower.
+My automated infrastructure deployment
+1. automates kubernetes deployment (Based on mmumshad/kubernetes-the-hard-way)
+    - Note: cni pod networking, dns, ingress controller, and loadbalancer are not yet included in code.
+2. also has glusterfs -- Not yet finished.
+
+Steps:
+1. Create the topology in both
+    - *inventory.yaml* and *config/certs/generate_all.sh*
+    - Nodes will be needed for etcd, control plane, load balancer, and worker nodes.
+2. *config/certs/generate_all.sh*
+*ansible-playbook -i inventory.yaml playbooks/kubernetes/\**
+3. etcd.yaml
+4. control_plane.yaml
+5. load_balancer.yaml
+6. worker_pre.yaml
+either:
+7. worker.yaml
+or (if with tls-bootstratpping) (currently not working)
+7. tls_bootstrapping.yaml
+7. worker_with_tls_bootstrap.yaml
+9. *kubectl apply -f kube-flannel CNI pod networking*
+10. init_rbac_kubelet_authorization.yaml
+11. *kubectl apply -f coredns.yaml*
+12. *istioctl install --set profile=default -f ../istio_examples/overrides.yaml*
+13. *kubectl apply -f metallb-native.yaml*
+     - Note about WA: kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io metallb-webhook-configuration
 
 
 Things to improve:
