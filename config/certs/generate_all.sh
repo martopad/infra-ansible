@@ -35,5 +35,13 @@ LOADBALANCER="192.168.1.27" #rpi500 LoadBalancer
 ## Uncomment if you plan to use init_worker.yaml instead of init_worker_with_tls_bootstrapping.yaml
 #${BASE_DIR}/generate_worker_certs.sh "${LOADBALANCER}" "un100d02" "192.168.1.34"
 #${BASE_DIR}/generate_worker_certs.sh "${LOADBALANCER}" "un100d03" "192.168.1.35"
+${BASE_DIR}/generate_worker_certs.sh "${LOADBALANCER}" "rpi503" "192.168.1.30"
+${BASE_DIR}/generate_worker_certs.sh "${LOADBALANCER}" "rpi504" "192.168.1.32"
+${BASE_DIR}/generate_worker_certs.sh "${LOADBALANCER}" "rpi505" "192.168.1.33"
 
-${BASE_DIR}/generate_kubeconf_to_be_admin.sh "${LOADBALANCER}"
+# these are etcd nodes. I do not know if they are good to be worker nodes also.
+# For now, generate certs just in case.
+${BASE_DIR}/generate_worker_certs.sh "${LOADBALANCER}" "un100d00" "192.168.1.22"
+${BASE_DIR}/generate_worker_certs.sh "${LOADBALANCER}" "un100d01" "192.168.1.21"
+
+#${BASE_DIR}/generate_kubeconf_to_be_admin.sh "${LOADBALANCER}"

@@ -2,10 +2,25 @@
   tasks: 
     - name: Add accept keywords for kuberenetes packages for aarch64 (raspi5)
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.accept_keywords/k8s_workers.conf"
-        dest: "/etc/portage/package.accept_keywords/k8s_workers.conf"
+        src: "{{ playbook_dir }}/../../config/static/root/etc/portage/package.accept_keywords/k8s_worker"
+        dest: "/etc/portage/package.accept_keywords/k8s_worker"
       when:
         - ansible_architecture == "aarch64"
+      # Note: There is a seperate playbook for adding this overlay.
+    - name: install customipvsadm from martopad repo
+      community.general.portage:
+        package: sys-cluster/ipvsadm::martopad
+        state: present
+        getbinpkg: true
+      when:
+        - ansible_architecture == "aarch64"
+    - name: install kubernetes apps for nodes
+      community.general.portage:
+        package: sys-cluster/ipvsadm
+        state: present
+        getbinpkg: true
+      when:
+        - ansible_architecture == "amd64"
     - name: install kubernetes apps for nodes
       community.general.portage:
         package: "{{ item }}"
@@ -16,7 +31,6 @@
         - app-containers/cni-plugins
         - net-firewall/ipset
         - sys-cluster/kubectl
-        - sys-cluster/ipvsadm
         - sys-cluster/kubelet
         - sys-cluster/kube-proxy
     - name: create dirs

@@ -1,0 +1,10 @@
+# The intent for this overlay is to provide a modified version of ipvsadm for arm64 arch.
+# Upstream doesn't have it yet.
+- hosts: kubernetes_worker
+  tasks: 
+    - name: add martopad repo for modified ipvsadm
+      ansible.builtin.shell:
+        cmd: eselect repository add martopad git https://github.com/martopad/gentoo-overlay.git
+    - name: sync it
+      ansible.builtin.shell:
+        cmd: emaint sync -r martopad

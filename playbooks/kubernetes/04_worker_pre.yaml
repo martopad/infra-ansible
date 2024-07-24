@@ -7,11 +7,20 @@
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../../config/static/root/etc/modules-load.d/k8s_workers.conf"
         dest: "/etc/modules-load.d//k8s_workers.conf"
-#   - name: Enable cgroups support in openrckjkk
-#     ansible.builtin.lineinfile:
-#       path: /etc/init.d/kubelet
-#       regexp: '^command_args='
-#       state: present
-#       line: command_args="
+    # regex pattern from https://stackoverflow.com/questions/61972815/ansible-modify-cmdline-txt-on-raspberry-pi
+    # cmdline flags from https://github.com/canonical/microk8s/issues/4439#issuecomment-2113025006
+    - name: add cgroup limits on raspberrypis cmdline
+      ansible.builtin.lineinfile:
+        path: /boot/cmdline.txt
+        backrefs: true
+        regexp: '^([\w](?!.*\b{{ item }}\b).*)$'
+        line: '\1 {{ item }}'
+      loop:
+        - "cgroup_enable=cpuset"
+        - "cgroup_enable=memory"
+        - "cgroup_memory=1"
+        - "swapaccount=1"
+      when:
+        - ansible_architecture == "aarch64"
     - name: Reboot to take effect
       ansible.builtin.reboot:

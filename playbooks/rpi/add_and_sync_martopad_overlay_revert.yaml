@@ -1,0 +1,5 @@
+- hosts: rpi503
+  tasks: 
+    - name: remove the martopad overlay
+      ansible.builtin.shell:
+        cmd: eselect repository remove martopad

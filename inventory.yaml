@@ -114,15 +114,15 @@ kubernetes_load_balancer:
 
 kubernetes_worker:
   hosts:
-#   rpi503:
-#     iid_worker:
-#       flags_load_balancer: "{{ hostvars['rpi500']['iid']['ip'] }}" # loadbalancer
-#   rpi504:
-#     iid_worker:
-#       flags_load_balancer: "{{ hostvars['rpi500']['iid']['ip'] }}" # loadbalancer
-#   rpi505:
-#     iid_worker:
-#       flags_load_balancer: "{{ hostvars['rpi500']['iid']['ip'] }}" # loadbalancer
+    rpi503:
+      iid_worker:
+        flags_load_balancer: "{{ hostvars['rpi500']['iid']['ip'] }}" # loadbalancer
+    rpi504:
+      iid_worker:
+        flags_load_balancer: "{{ hostvars['rpi500']['iid']['ip'] }}" # loadbalancer
+    rpi505:
+      iid_worker:
+        flags_load_balancer: "{{ hostvars['rpi500']['iid']['ip'] }}" # loadbalancer
     un100d02:
       iid_worker:
         flags_load_balancer: "{{ hostvars['rpi500']['iid']['ip'] }}" # loadbalancer
