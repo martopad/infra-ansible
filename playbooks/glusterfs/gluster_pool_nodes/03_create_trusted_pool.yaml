@@ -1,0 +1,7 @@
+- hosts: glusterfs_primary
+  tasks:
+    - name: Create a trusted storage pool
+      gluster.gluster.gluster_peer:
+        state: present
+        nodes: "{{ item }}"
+      loop: "{{ iid.glusterfs_peers }}"
